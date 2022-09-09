@@ -1,4 +1,8 @@
 var ethers = require("ethers");
+const TelegramBot = require('node-telegram-bot-api');
+const TOKEN = '5754705238:AAHs5GBMrdiTRvwP7Y474SsMt_NLNWldZbE';
+const chatId = '1009204500';
+const bot = new TelegramBot(TOKEN, { polling: false });
 var url = "wss://quick-chaotic-market.discover.quiknode.pro/ec9bbc598e3633870eea91cc39177bd56e76b7c2/";
 var ABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\"," 
 + "\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"minter_\"," 
@@ -138,15 +142,53 @@ var ABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\","
 + "\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}]," 
 + "\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]";
 
+
+const telegrambot = (message, json) => {
+  try {
+    bot.sendMessage(chatId, message + '\n\n<pre>' + JSON.stringify(json, null, 2) + '</pre>', {
+      parse_mode: 'html'
+    });
+  } catch (err) {
+    console.log('Something went wrong when trying to send a Telegram notification', err);
+  }
+}
+
 var init = function () {
   var customWsProvider = new ethers.providers.WebSocketProvider(url);
   const iface = new ethers.utils.Interface(ABI);
   customWsProvider.on("pending", (tx) => {
     customWsProvider.getTransaction(tx).then(function (transaction) {
-      if(transaction!=null&&transaction.data.indexOf("0x23b872dd")!==-1){
+      //Transfer From
+      // if(transaction!=null&&transaction.data.indexOf("0x23b872dd")!==-1){
+      //   let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
+      //   console.log(decodedData);
+      //   // console.log(parseInt(decodedData.value,16)/10**18);
+      // }
+      // Transfer transaction
+      if(transaction!=null&&transaction.data.indexOf("0xa9059cbb")!==-1){
         let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
-        console.log(decodedData);
+        console.log(transaction);
+        console.log(parseInt(decodedData.args[1]._hex,16)/10**18);
+        telegrambot("Alert", decodedData);
       }
+
+      // if(transaction!=null&&transaction.data.indexOf("0x23b872dd")!==-1){
+      //   let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
+      //   console.log(decodedData);
+      //   // console.log(parseInt(decodedData.value,16)/10**18);
+      // }
+
+      // if(transaction!=null&&transaction.data.indexOf("0x23b872dd")!==-1){
+      //   let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
+      //   console.log(decodedData);
+      //   // console.log(parseInt(decodedData.value,16)/10**18);
+      // }
+
+      // if(transaction!=null&&transaction.data.indexOf("0x23b872dd")!==-1){
+      //   let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
+      //   console.log(decodedData);
+      //   // console.log(parseInt(decodedData.value,16)/10**18);
+      // }
     });
   });
 
@@ -162,5 +204,6 @@ var init = function () {
     setTimeout(init, 3000);
   });
 };
+
     
 init();
