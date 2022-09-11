@@ -1556,14 +1556,14 @@ var init = function () {
             telegrambot(message);
             if(token0.indexOf("ETH")!==-1||token1.indexOf("ETH")!==-1){
               if(token0.indexOf("ETH")!==-1){
-                if(amount0>0){
+                if(amount0>0.1){
                   console.log(message);
                   telegrambot(message);
                 }
               }
 
               if(token1.indexOf("ETH")!==-1){
-                if(amount1>0){
+                if(amount1>0.1){
                   console.log(message);
                   telegrambot(message);
                 }
@@ -1593,14 +1593,14 @@ var init = function () {
             telegrambot(message);
             if(token0.indexOf("ETH")!==-1||token1.indexOf("ETH")!==-1){
               if(token0.indexOf("ETH")!==-1){
-                if(amount0>0){
+                if(amount0>0.1){
                   console.log(message);
                   telegrambot(message);
                 }
               }
 
               if(token1.indexOf("ETH")!==-1){
-                if(amount1>0){
+                if(amount1>0.1){
                   console.log(message);
                   telegrambot(message);
                 }
@@ -1626,14 +1626,14 @@ var init = function () {
             telegrambot(message);
             if(token0Symbol.indexOf("ETH")!==-1||token1Symbol.indexOf("ETH")!==-1){
               if(token0Symbol.indexOf("ETH")!==-1){
-                if(amount0>0){
+                if(amount0>0.1){
                   console.log(message);
                   telegrambot(message);
                 }
               }
 
               if(token1Symbol.indexOf("ETH")!==-1){
-                if(amount1>0){
+                if(amount1>0.1){
                   console.log(message);
                   telegrambot(message);
                 }

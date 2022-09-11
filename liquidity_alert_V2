@@ -1243,7 +1243,7 @@ var init = function () {
           let tokenAmount = parseInt(decodedData.args[2]._hex,16)/(10**tokenDecimal);
           console.log(transaction);
           console.log(ethAmount);
-          if(ethAmount>0){
+          if(ethAmount>0.1){
             const message = ethAmount + " of ETH and " + tokenAmount + " of " + tokenSymbol + " is removed from liquidity pool of ETH/"+ tokenSymbol;
             console.log(message);
             telegrambot(message);
@@ -1263,7 +1263,7 @@ var init = function () {
           let ethAmount = parseInt(decodedData.args[3]._hex,16)/(10**18);
           let tokenAmount = parseInt(decodedData.args[2]._hex,16)/(10**tokenDecimal);
           console.log(ethAmount);
-          if(ethAmount>0){
+          if(ethAmount>0.1){
             const message = ethAmount + " of ETH and " + tokenAmount + " of " + tokenSymbol + " is added to liquidity pool of ETH/"+ tokenSymbol;
             console.log(message);
             telegrambot(message);
