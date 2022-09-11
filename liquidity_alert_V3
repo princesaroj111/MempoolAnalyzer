@@ -1,0 +1,1676 @@
+var ethers = require("ethers");
+const TelegramBot = require('node-telegram-bot-api');
+const Web3  = require('web3');
+const { decodeRaw } = require("multicall-decode");
+const Web3EthContract = require('web3-eth-contract');
+const abiDecoder = require('abi-decoder');
+const Web3WsProvider = require('web3-providers-ws');
+const TOKEN = '5754705238:AAHs5GBMrdiTRvwP7Y474SsMt_NLNWldZbE';
+const chatId = '1009204500';
+const bot = new TelegramBot(TOKEN, { polling: false });
+var url = "wss://quick-chaotic-market.discover.quiknode.pro/ec9bbc598e3633870eea91cc39177bd56e76b7c2/";
+// const { abi: IUniswapV3PoolABI }  = require("@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json")
+const { abi: INonfungiblePositionManagerABI } = require('@uniswap/v3-periphery/artifacts/contracts/interfaces/INonfungiblePositionManager.sol/INonfungiblePositionManager.json');
+
+
+const ABI = [
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"_factory",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"_WETH9",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"_tokenDescriptor_",
+           "type":"address"
+        }
+     ],
+     "stateMutability":"nonpayable",
+     "type":"constructor"
+  },
+  {
+     "anonymous":false,
+     "inputs":[
+        {
+           "indexed":true,
+           "internalType":"address",
+           "name":"owner",
+           "type":"address"
+        },
+        {
+           "indexed":true,
+           "internalType":"address",
+           "name":"approved",
+           "type":"address"
+        },
+        {
+           "indexed":true,
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"Approval",
+     "type":"event"
+  },
+  {
+     "anonymous":false,
+     "inputs":[
+        {
+           "indexed":true,
+           "internalType":"address",
+           "name":"owner",
+           "type":"address"
+        },
+        {
+           "indexed":true,
+           "internalType":"address",
+           "name":"operator",
+           "type":"address"
+        },
+        {
+           "indexed":false,
+           "internalType":"bool",
+           "name":"approved",
+           "type":"bool"
+        }
+     ],
+     "name":"ApprovalForAll",
+     "type":"event"
+  },
+  {
+     "anonymous":false,
+     "inputs":[
+        {
+           "indexed":true,
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        },
+        {
+           "indexed":false,
+           "internalType":"address",
+           "name":"recipient",
+           "type":"address"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint256",
+           "name":"amount0",
+           "type":"uint256"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint256",
+           "name":"amount1",
+           "type":"uint256"
+        }
+     ],
+     "name":"Collect",
+     "type":"event"
+  },
+  {
+     "anonymous":false,
+     "inputs":[
+        {
+           "indexed":true,
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint128",
+           "name":"liquidity",
+           "type":"uint128"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint256",
+           "name":"amount0",
+           "type":"uint256"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint256",
+           "name":"amount1",
+           "type":"uint256"
+        }
+     ],
+     "name":"DecreaseLiquidity",
+     "type":"event"
+  },
+  {
+     "anonymous":false,
+     "inputs":[
+        {
+           "indexed":true,
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint128",
+           "name":"liquidity",
+           "type":"uint128"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint256",
+           "name":"amount0",
+           "type":"uint256"
+        },
+        {
+           "indexed":false,
+           "internalType":"uint256",
+           "name":"amount1",
+           "type":"uint256"
+        }
+     ],
+     "name":"IncreaseLiquidity",
+     "type":"event"
+  },
+  {
+     "anonymous":false,
+     "inputs":[
+        {
+           "indexed":true,
+           "internalType":"address",
+           "name":"from",
+           "type":"address"
+        },
+        {
+           "indexed":true,
+           "internalType":"address",
+           "name":"to",
+           "type":"address"
+        },
+        {
+           "indexed":true,
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"Transfer",
+     "type":"event"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"DOMAIN_SEPARATOR",
+     "outputs":[
+        {
+           "internalType":"bytes32",
+           "name":"",
+           "type":"bytes32"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"PERMIT_TYPEHASH",
+     "outputs":[
+        {
+           "internalType":"bytes32",
+           "name":"",
+           "type":"bytes32"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"WETH9",
+     "outputs":[
+        {
+           "internalType":"address",
+           "name":"",
+           "type":"address"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"to",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"approve",
+     "outputs":[
+        
+     ],
+     "stateMutability":"nonpayable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"owner",
+           "type":"address"
+        }
+     ],
+     "name":"balanceOf",
+     "outputs":[
+        {
+           "internalType":"uint256",
+           "name":"",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"baseURI",
+     "outputs":[
+        {
+           "internalType":"string",
+           "name":"",
+           "type":"string"
+        }
+     ],
+     "stateMutability":"pure",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"burn",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "components":[
+              {
+                 "internalType":"uint256",
+                 "name":"tokenId",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"address",
+                 "name":"recipient",
+                 "type":"address"
+              },
+              {
+                 "internalType":"uint128",
+                 "name":"amount0Max",
+                 "type":"uint128"
+              },
+              {
+                 "internalType":"uint128",
+                 "name":"amount1Max",
+                 "type":"uint128"
+              }
+           ],
+           "internalType":"struct INonfungiblePositionManager.CollectParams",
+           "name":"params",
+           "type":"tuple"
+        }
+     ],
+     "name":"collect",
+     "outputs":[
+        {
+           "internalType":"uint256",
+           "name":"amount0",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amount1",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"token0",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"token1",
+           "type":"address"
+        },
+        {
+           "internalType":"uint24",
+           "name":"fee",
+           "type":"uint24"
+        },
+        {
+           "internalType":"uint160",
+           "name":"sqrtPriceX96",
+           "type":"uint160"
+        }
+     ],
+     "name":"createAndInitializePoolIfNecessary",
+     "outputs":[
+        {
+           "internalType":"address",
+           "name":"pool",
+           "type":"address"
+        }
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "components":[
+              {
+                 "internalType":"uint256",
+                 "name":"tokenId",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint128",
+                 "name":"liquidity",
+                 "type":"uint128"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount0Min",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount1Min",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"deadline",
+                 "type":"uint256"
+              }
+           ],
+           "internalType":"struct INonfungiblePositionManager.DecreaseLiquidityParams",
+           "name":"params",
+           "type":"tuple"
+        }
+     ],
+     "name":"decreaseLiquidity",
+     "outputs":[
+        {
+           "internalType":"uint256",
+           "name":"amount0",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amount1",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"factory",
+     "outputs":[
+        {
+           "internalType":"address",
+           "name":"",
+           "type":"address"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"getApproved",
+     "outputs":[
+        {
+           "internalType":"address",
+           "name":"",
+           "type":"address"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "components":[
+              {
+                 "internalType":"uint256",
+                 "name":"tokenId",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount0Desired",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount1Desired",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount0Min",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount1Min",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"deadline",
+                 "type":"uint256"
+              }
+           ],
+           "internalType":"struct INonfungiblePositionManager.IncreaseLiquidityParams",
+           "name":"params",
+           "type":"tuple"
+        }
+     ],
+     "name":"increaseLiquidity",
+     "outputs":[
+        {
+           "internalType":"uint128",
+           "name":"liquidity",
+           "type":"uint128"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amount0",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amount1",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"owner",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"operator",
+           "type":"address"
+        }
+     ],
+     "name":"isApprovedForAll",
+     "outputs":[
+        {
+           "internalType":"bool",
+           "name":"",
+           "type":"bool"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "components":[
+              {
+                 "internalType":"address",
+                 "name":"token0",
+                 "type":"address"
+              },
+              {
+                 "internalType":"address",
+                 "name":"token1",
+                 "type":"address"
+              },
+              {
+                 "internalType":"uint24",
+                 "name":"fee",
+                 "type":"uint24"
+              },
+              {
+                 "internalType":"int24",
+                 "name":"tickLower",
+                 "type":"int24"
+              },
+              {
+                 "internalType":"int24",
+                 "name":"tickUpper",
+                 "type":"int24"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount0Desired",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount1Desired",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount0Min",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"amount1Min",
+                 "type":"uint256"
+              },
+              {
+                 "internalType":"address",
+                 "name":"recipient",
+                 "type":"address"
+              },
+              {
+                 "internalType":"uint256",
+                 "name":"deadline",
+                 "type":"uint256"
+              }
+           ],
+           "internalType":"struct INonfungiblePositionManager.MintParams",
+           "name":"params",
+           "type":"tuple"
+        }
+     ],
+     "name":"mint",
+     "outputs":[
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint128",
+           "name":"liquidity",
+           "type":"uint128"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amount0",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amount1",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"bytes[]",
+           "name":"data",
+           "type":"bytes[]"
+        }
+     ],
+     "name":"multicall",
+     "outputs":[
+        {
+           "internalType":"bytes[]",
+           "name":"results",
+           "type":"bytes[]"
+        }
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"name",
+     "outputs":[
+        {
+           "internalType":"string",
+           "name":"",
+           "type":"string"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"ownerOf",
+     "outputs":[
+        {
+           "internalType":"address",
+           "name":"",
+           "type":"address"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"spender",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"deadline",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint8",
+           "name":"v",
+           "type":"uint8"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"r",
+           "type":"bytes32"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"s",
+           "type":"bytes32"
+        }
+     ],
+     "name":"permit",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"positions",
+     "outputs":[
+        {
+           "internalType":"uint96",
+           "name":"nonce",
+           "type":"uint96"
+        },
+        {
+           "internalType":"address",
+           "name":"operator",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"token0",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"token1",
+           "type":"address"
+        },
+        {
+           "internalType":"uint24",
+           "name":"fee",
+           "type":"uint24"
+        },
+        {
+           "internalType":"int24",
+           "name":"tickLower",
+           "type":"int24"
+        },
+        {
+           "internalType":"int24",
+           "name":"tickUpper",
+           "type":"int24"
+        },
+        {
+           "internalType":"uint128",
+           "name":"liquidity",
+           "type":"uint128"
+        },
+        {
+           "internalType":"uint256",
+           "name":"feeGrowthInside0LastX128",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"feeGrowthInside1LastX128",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint128",
+           "name":"tokensOwed0",
+           "type":"uint128"
+        },
+        {
+           "internalType":"uint128",
+           "name":"tokensOwed1",
+           "type":"uint128"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"refundETH",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"from",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"to",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"safeTransferFrom",
+     "outputs":[
+        
+     ],
+     "stateMutability":"nonpayable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"from",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"to",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        },
+        {
+           "internalType":"bytes",
+           "name":"_data",
+           "type":"bytes"
+        }
+     ],
+     "name":"safeTransferFrom",
+     "outputs":[
+        
+     ],
+     "stateMutability":"nonpayable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"token",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"value",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"deadline",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint8",
+           "name":"v",
+           "type":"uint8"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"r",
+           "type":"bytes32"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"s",
+           "type":"bytes32"
+        }
+     ],
+     "name":"selfPermit",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"token",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"nonce",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"expiry",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint8",
+           "name":"v",
+           "type":"uint8"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"r",
+           "type":"bytes32"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"s",
+           "type":"bytes32"
+        }
+     ],
+     "name":"selfPermitAllowed",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"token",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"nonce",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"expiry",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint8",
+           "name":"v",
+           "type":"uint8"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"r",
+           "type":"bytes32"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"s",
+           "type":"bytes32"
+        }
+     ],
+     "name":"selfPermitAllowedIfNecessary",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"token",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"value",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"deadline",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint8",
+           "name":"v",
+           "type":"uint8"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"r",
+           "type":"bytes32"
+        },
+        {
+           "internalType":"bytes32",
+           "name":"s",
+           "type":"bytes32"
+        }
+     ],
+     "name":"selfPermitIfNecessary",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"operator",
+           "type":"address"
+        },
+        {
+           "internalType":"bool",
+           "name":"approved",
+           "type":"bool"
+        }
+     ],
+     "name":"setApprovalForAll",
+     "outputs":[
+        
+     ],
+     "stateMutability":"nonpayable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"bytes4",
+           "name":"interfaceId",
+           "type":"bytes4"
+        }
+     ],
+     "name":"supportsInterface",
+     "outputs":[
+        {
+           "internalType":"bool",
+           "name":"",
+           "type":"bool"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"token",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amountMinimum",
+           "type":"uint256"
+        },
+        {
+           "internalType":"address",
+           "name":"recipient",
+           "type":"address"
+        }
+     ],
+     "name":"sweepToken",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"symbol",
+     "outputs":[
+        {
+           "internalType":"string",
+           "name":"",
+           "type":"string"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"index",
+           "type":"uint256"
+        }
+     ],
+     "name":"tokenByIndex",
+     "outputs":[
+        {
+           "internalType":"uint256",
+           "name":"",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"owner",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"index",
+           "type":"uint256"
+        }
+     ],
+     "name":"tokenOfOwnerByIndex",
+     "outputs":[
+        {
+           "internalType":"uint256",
+           "name":"",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"tokenURI",
+     "outputs":[
+        {
+           "internalType":"string",
+           "name":"",
+           "type":"string"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        
+     ],
+     "name":"totalSupply",
+     "outputs":[
+        {
+           "internalType":"uint256",
+           "name":"",
+           "type":"uint256"
+        }
+     ],
+     "stateMutability":"view",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"address",
+           "name":"from",
+           "type":"address"
+        },
+        {
+           "internalType":"address",
+           "name":"to",
+           "type":"address"
+        },
+        {
+           "internalType":"uint256",
+           "name":"tokenId",
+           "type":"uint256"
+        }
+     ],
+     "name":"transferFrom",
+     "outputs":[
+        
+     ],
+     "stateMutability":"nonpayable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"amount0Owed",
+           "type":"uint256"
+        },
+        {
+           "internalType":"uint256",
+           "name":"amount1Owed",
+           "type":"uint256"
+        },
+        {
+           "internalType":"bytes",
+           "name":"data",
+           "type":"bytes"
+        }
+     ],
+     "name":"uniswapV3MintCallback",
+     "outputs":[
+        
+     ],
+     "stateMutability":"nonpayable",
+     "type":"function"
+  },
+  {
+     "inputs":[
+        {
+           "internalType":"uint256",
+           "name":"amountMinimum",
+           "type":"uint256"
+        },
+        {
+           "internalType":"address",
+           "name":"recipient",
+           "type":"address"
+        }
+     ],
+     "name":"unwrapWETH9",
+     "outputs":[
+        
+     ],
+     "stateMutability":"payable",
+     "type":"function"
+  },
+  {
+     "stateMutability":"payable",
+     "type":"receive"
+  }
+];
+
+const ERC20_ABI = [
+  {
+      "constant": true,
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+          {
+              "name": "",
+              "type": "string"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [
+          {
+              "name": "_spender",
+              "type": "address"
+          },
+          {
+              "name": "_value",
+              "type": "uint256"
+          }
+      ],
+      "name": "approve",
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+          {
+              "name": "",
+              "type": "uint256"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [
+          {
+              "name": "_from",
+              "type": "address"
+          },
+          {
+              "name": "_to",
+              "type": "address"
+          },
+          {
+              "name": "_value",
+              "type": "uint256"
+          }
+      ],
+      "name": "transferFrom",
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+          {
+              "name": "",
+              "type": "uint8"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [
+          {
+              "name": "_owner",
+              "type": "address"
+          }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+          {
+              "name": "balance",
+              "type": "uint256"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+          {
+              "name": "",
+              "type": "string"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "constant": false,
+      "inputs": [
+          {
+              "name": "_to",
+              "type": "address"
+          },
+          {
+              "name": "_value",
+              "type": "uint256"
+          }
+      ],
+      "name": "transfer",
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+  },
+  {
+      "constant": true,
+      "inputs": [
+          {
+              "name": "_owner",
+              "type": "address"
+          },
+          {
+              "name": "_spender",
+              "type": "address"
+          }
+      ],
+      "name": "allowance",
+      "outputs": [
+          {
+              "name": "",
+              "type": "uint256"
+          }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+  },
+  {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+  },
+  {
+      "anonymous": false,
+      "inputs": [
+          {
+              "indexed": true,
+              "name": "owner",
+              "type": "address"
+          },
+          {
+              "indexed": true,
+              "name": "spender",
+              "type": "address"
+          },
+          {
+              "indexed": false,
+              "name": "value",
+              "type": "uint256"
+          }
+      ],
+      "name": "Approval",
+      "type": "event"
+  },
+  {
+      "anonymous": false,
+      "inputs": [
+          {
+              "indexed": true,
+              "name": "from",
+              "type": "address"
+          },
+          {
+              "indexed": true,
+              "name": "to",
+              "type": "address"
+          },
+          {
+              "indexed": false,
+              "name": "value",
+              "type": "uint256"
+          }
+      ],
+      "name": "Transfer",
+      "type": "event"
+  }
+];
+
+
+  
+// console.log(IUniswapV3PoolABI);
+const telegrambot = (message) => {
+  try {
+    bot.sendMessage(chatId, message , {
+      parse_mode: 'html'
+    });
+  } catch (err) {
+    console.log('Something went wrong when trying to send a Telegram notification', err);
+  }
+}
+const nft_contract = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
+var init = function () {
+    abiDecoder.addABI(ABI);
+    var customWsProvider = new ethers.providers.WebSocketProvider(url);
+    const iface = new ethers.utils.Interface(ABI);
+    Web3EthContract.setProvider(url);
+  
+    customWsProvider.on("pending", (tx) => {
+      customWsProvider.getTransaction(tx).then(async function (transaction) {
+      if(transaction!=null&&(transaction.data.indexOf("0xac9650d8")!==-1)){
+        let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
+
+        decodedData.args[0].forEach(async element => {
+          let data = abiDecoder.decodeMethod(element);
+         
+          console.log(data);
+          if(data!=null&&data.name!=null&&data.name.indexOf('decrease')!==-1){
+            console.log(transaction);
+            const value = data.params.filter((param) => param.name === "params")[0].value;
+            const tokenInstance = new Web3EthContract(ABI, nft_contract);
+            const nftTokenId  = value[0];
+            const token_details = await tokenInstance.methods.positions(nftTokenId).call();
+            console.log(value);
+            const token0Instance = new Web3EthContract(ERC20_ABI, token_details.token0);
+            const token1Instance = new Web3EthContract(ERC20_ABI, token_details.token1);
+            const token0 = await token0Instance.methods.symbol().call();
+            const token1 = await token1Instance.methods.symbol().call();
+            const token0Decimal = await token0Instance.methods.decimals().call()
+            const token1Decimal = await token1Instance.methods.decimals().call()
+            const amount0 = value[2]/(10**token0Decimal);
+            const amount1 = value[3]/(10**token1Decimal);
+            
+            // console.log(token_details);
+            const message = "liquidity decrease "+ amount0 + " of " + token0 + " and "+ amount1+ " of "+ token1;
+            console.log(message);
+            telegrambot(message);
+            if(token0.indexOf("ETH")!==-1||token1.indexOf("ETH")!==-1){
+              if(token0.indexOf("ETH")!==-1){
+                if(amount0>0){
+                  console.log(message);
+                  telegrambot(message);
+                }
+              }
+
+              if(token1.indexOf("ETH")!==-1){
+                if(amount1>0){
+                  console.log(message);
+                  telegrambot(message);
+                }
+              }
+            }
+          }
+
+          if(data!=null&&data.name!=null&&data.name.indexOf('increase')!==-1){
+            console.log(transaction);
+            const value = data.params.filter((param) => param.name === "params")[0].value;
+            const tokenInstance = new Web3EthContract(ABI, nft_contract);
+            console.log(value);
+            const nftTokenId  = value[0];
+            const token_details = await tokenInstance.methods.positions(nftTokenId).call();
+            // console.log(token_details);
+            const token0Instance = new Web3EthContract(ERC20_ABI, token_details.token0);
+            const token1Instance = new Web3EthContract(ERC20_ABI, token_details.token1);
+            const token0 = await token0Instance.methods.symbol().call();
+            const token1 = await token1Instance.methods.symbol().call();
+            const token0Decimal = await token0Instance.methods.decimals().call()
+            const token1Decimal = await token1Instance.methods.decimals().call()
+            const amount0 = value[1]/(10**token0Decimal);
+            const amount1 = value[2]/(10**token1Decimal);
+          
+            const message = "Liquidity increase transaction "+ amount0 +" of "+ token0 +" and " +amount1 +" of "+ token1;
+            console.log(message);
+            telegrambot(message);
+            if(token0.indexOf("ETH")!==-1||token1.indexOf("ETH")!==-1){
+              if(token0.indexOf("ETH")!==-1){
+                if(amount0>0){
+                  console.log(message);
+                  telegrambot(message);
+                }
+              }
+
+              if(token1.indexOf("ETH")!==-1){
+                if(amount1>0){
+                  console.log(message);
+                  telegrambot(message);
+                }
+              }
+          }
+          }
+          if(data!=null&&data.name!=null&&data.name.indexOf('mint')!==-1){
+            console.log(transaction);
+            const value = data.params.filter((param) => param.name === "params")[0].value;
+            const token0 = value[0];
+            const token1 = value[1];
+            const token0Instance = new Web3EthContract(ERC20_ABI, token0);
+            const token1Instance = new Web3EthContract(ERC20_ABI, token1);
+            const token0Symbol = await token0Instance.methods.symbol().call();
+            const token1Symbol = await token1Instance.methods.symbol().call();
+            const token0Decimal = await token0Instance.methods.decimals().call()
+            const token1Decimal = await token1Instance.methods.decimals().call()
+            const amount0 = value[5]/(10**token0Decimal);
+            const amount1 = value[6]/(10**token1Decimal);
+            console.log(value);
+            const message = "Liquidity mint transaction "+ amount0 +" of "+ token0Symbol +" and " +amount1 +" of "+ token1Symbol;
+            console.log(message);
+            telegrambot(message);
+            if(token0Symbol.indexOf("ETH")!==-1||token1Symbol.indexOf("ETH")!==-1){
+              if(token0Symbol.indexOf("ETH")!==-1){
+                if(amount0>0){
+                  console.log(message);
+                  telegrambot(message);
+                }
+              }
+
+              if(token1Symbol.indexOf("ETH")!==-1){
+                if(amount1>0){
+                  console.log(message);
+                  telegrambot(message);
+                }
+              }
+          }
+          
+          }
+          if(data!=null&&data.name!=null&&data.name.indexOf('burn')!==-1){
+            const value = data.params.filter((param) => param.name === "params")[0].value;
+            const nftTokenId  = value[0];
+            const tokenInstance = new Web3EthContract(ABI, nft_contract);
+            const metadata = await tokenInstance.methods.positions(nftTokenId).call();
+
+            console.log(metadata.tokensOwed0);
+            console.log(metadata.tokensOwed1);
+            telegrambot(metadata);
+          }
+        
+
+      });
+    }
+    });
+  });
+  
+    customWsProvider._websocket.on("error", async () => {
+      console.log(`Unable to connect to ${ep.subdomain} retrying in 3s...`);
+      setTimeout(init, 3000);
+    });
+    customWsProvider._websocket.on("close", async (code) => {
+      console.log(
+        `Connection lost with code ${code}! Attempting reconnect in 3s...`
+      );
+      customWsProvider._websocket.terminate();
+      setTimeout(init, 3000);
+    });
+  };
+  
+      
+  init();
+

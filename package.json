@@ -1,7 +1,14 @@
 {
   "dependencies": {
+    "@uniswap/sdk-core": "^3.0.2",
+    "@uniswap/v3-sdk": "^3.9.0",
+    "abi-decoder": "^2.4.0",
     "ethers": "^5.7.0",
+    "multicall-decode": "^1.0.2",
     "node-telegram-bot-api": "^0.59.0",
-    "telegraf": "^4.9.1"
+    "telegraf": "^4.9.1",
+    "web3": "^1.7.5",
+    "web3-eth-contract": "^1.7.5",
+    "web3-providers-ws": "^1.7.5"
   }
 }
