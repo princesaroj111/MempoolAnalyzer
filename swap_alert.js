@@ -1,6 +1,5 @@
 var ethers = require("ethers");
 const TelegramBot = require('node-telegram-bot-api');
-const { decodeRaw } = require("multicall-decode");
 const Web3EthContract = require('web3-eth-contract');
 const abiDecoder = require('abi-decoder');
 const TOKEN = '5754705238:AAHs5GBMrdiTRvwP7Y474SsMt_NLNWldZbE';
@@ -8,7 +7,7 @@ const chatId = '1009204500';
 const bot = new TelegramBot(TOKEN, { polling: false });
 var url = "wss://quick-chaotic-market.discover.quiknode.pro/ec9bbc598e3633870eea91cc39177bd56e76b7c2/";
 
-const ABI3 = [
+const UNISWAP_V3_ROUTER = [
     {
        "inputs":[
           {
@@ -1360,9 +1359,9 @@ const telegrambot = (message) => {
   }
 
   var init = function () {
-    abiDecoder.addABI(ABI3);
+    abiDecoder.addABI(UNISWAP_V3_ROUTER);
     var customWsProvider = new ethers.providers.WebSocketProvider(url);
-    const iface = new ethers.utils.Interface(ABI3);
+    const iface = new ethers.utils.Interface(UNISWAP_V3_ROUTER);
     Web3EthContract.setProvider(url);
   
     const weth = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
@@ -1371,6 +1370,7 @@ const telegrambot = (message) => {
       customWsProvider.getTransaction(tx).then(async function (transaction) {
       
        //swap transaction
+       //multicall(uint, dtata[] byte)
         if(transaction!=null&&(transaction.data.indexOf("0x5ae401dc")!==-1)){
           let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
         //   console.log(transaction);
@@ -1395,7 +1395,8 @@ const telegrambot = (message) => {
               const tokenName = await tokenInstance.methods.name().call();
               const tokenDecimal = await tokenInstance.methods.decimals().call()
               const tokenSymbol = await tokenInstance.methods.symbol().call();
-              const message = "Exchanged " + amountInEth + " of ETH to " + amountOut/10**tokenDecimal + " " +tokenSymbol;
+              const message = "Exchange Transaction: " + amountInEth + " of ETH to " + amountOut/10**tokenDecimal + " " +tokenSymbol;
+              console.log(tx);
               console.log(message);
               telegrambot(message);
             }

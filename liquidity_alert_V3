@@ -1,19 +1,13 @@
 var ethers = require("ethers");
 const TelegramBot = require('node-telegram-bot-api');
-const Web3  = require('web3');
-const { decodeRaw } = require("multicall-decode");
 const Web3EthContract = require('web3-eth-contract');
 const abiDecoder = require('abi-decoder');
-const Web3WsProvider = require('web3-providers-ws');
 const TOKEN = '5754705238:AAHs5GBMrdiTRvwP7Y474SsMt_NLNWldZbE';
 const chatId = '1009204500';
 const bot = new TelegramBot(TOKEN, { polling: false });
 var url = "wss://quick-chaotic-market.discover.quiknode.pro/ec9bbc598e3633870eea91cc39177bd56e76b7c2/";
-// const { abi: IUniswapV3PoolABI }  = require("@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json")
-const { abi: INonfungiblePositionManagerABI } = require('@uniswap/v3-periphery/artifacts/contracts/interfaces/INonfungiblePositionManager.sol/INonfungiblePositionManager.json');
 
-
-const ABI = [
+const UNISWAP_V3_POS = [
   {
      "inputs":[
         {
@@ -1507,8 +1501,6 @@ const ERC20_ABI = [
 ];
 
 
-  
-// console.log(IUniswapV3PoolABI);
 const telegrambot = (message) => {
   try {
     bot.sendMessage(chatId, message , {
@@ -1520,29 +1512,30 @@ const telegrambot = (message) => {
 }
 const nft_contract = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
 var init = function () {
-    abiDecoder.addABI(ABI);
+    abiDecoder.addABI(UNISWAP_V3_POS);
     var customWsProvider = new ethers.providers.WebSocketProvider(url);
-    const iface = new ethers.utils.Interface(ABI);
+    const iface = new ethers.utils.Interface(UNISWAP_V3_POS);
     Web3EthContract.setProvider(url);
   
     customWsProvider.on("pending", (tx) => {
       customWsProvider.getTransaction(tx).then(async function (transaction) {
+      //multicall(dtata[] byte)
       if(transaction!=null&&(transaction.data.indexOf("0xac9650d8")!==-1)){
         let decodedData = iface.parseTransaction({ data: transaction.data, value: transaction.value });
 
         decodedData.args[0].forEach(async element => {
           let data = abiDecoder.decodeMethod(element);
          
-          console.log(data);
+         //  console.log(data);
           if(data!=null&&data.name!=null&&data.name.indexOf('decrease')!==-1){
-            console.log(transaction);
+            console.log(tx);
             const value = data.params.filter((param) => param.name === "params")[0].value;
-            const tokenInstance = new Web3EthContract(ABI, nft_contract);
+            const tokenInstance = new Web3EthContract(UNISWAP_V3_POS, nft_contract);
             const nftTokenId  = value[0];
-            const token_details = await tokenInstance.methods.positions(nftTokenId).call();
+            const nft_token_details = await tokenInstance.methods.positions(nftTokenId).call();
             console.log(value);
-            const token0Instance = new Web3EthContract(ERC20_ABI, token_details.token0);
-            const token1Instance = new Web3EthContract(ERC20_ABI, token_details.token1);
+            const token0Instance = new Web3EthContract(ERC20_ABI, nft_token_details.token0);
+            const token1Instance = new Web3EthContract(ERC20_ABI, nft_token_details.token1);
             const token0 = await token0Instance.methods.symbol().call();
             const token1 = await token1Instance.methods.symbol().call();
             const token0Decimal = await token0Instance.methods.decimals().call()
@@ -1550,20 +1543,19 @@ var init = function () {
             const amount0 = value[2]/(10**token0Decimal);
             const amount1 = value[3]/(10**token1Decimal);
             
-            // console.log(token_details);
             const message = "liquidity decrease "+ amount0 + " of " + token0 + " and "+ amount1+ " of "+ token1;
-            console.log(message);
-            telegrambot(message);
+            // console.log(message);
+            // telegrambot(message);
             if(token0.indexOf("ETH")!==-1||token1.indexOf("ETH")!==-1){
               if(token0.indexOf("ETH")!==-1){
-                if(amount0>0.1){
+                if(amount0>0.01){
                   console.log(message);
                   telegrambot(message);
                 }
               }
 
               if(token1.indexOf("ETH")!==-1){
-                if(amount1>0.1){
+                if(amount1>0.01){
                   console.log(message);
                   telegrambot(message);
                 }
@@ -1572,15 +1564,15 @@ var init = function () {
           }
 
           if(data!=null&&data.name!=null&&data.name.indexOf('increase')!==-1){
-            console.log(transaction);
+            console.log(tx);
             const value = data.params.filter((param) => param.name === "params")[0].value;
-            const tokenInstance = new Web3EthContract(ABI, nft_contract);
+            const tokenInstance = new Web3EthContract(UNISWAP_V3_POS, nft_contract);
             console.log(value);
             const nftTokenId  = value[0];
-            const token_details = await tokenInstance.methods.positions(nftTokenId).call();
+            const nft_token_details = await tokenInstance.methods.positions(nftTokenId).call();
             // console.log(token_details);
-            const token0Instance = new Web3EthContract(ERC20_ABI, token_details.token0);
-            const token1Instance = new Web3EthContract(ERC20_ABI, token_details.token1);
+            const token0Instance = new Web3EthContract(ERC20_ABI, nft_token_details.token0);
+            const token1Instance = new Web3EthContract(ERC20_ABI, nft_token_details.token1);
             const token0 = await token0Instance.methods.symbol().call();
             const token1 = await token1Instance.methods.symbol().call();
             const token0Decimal = await token0Instance.methods.decimals().call()
@@ -1589,18 +1581,18 @@ var init = function () {
             const amount1 = value[2]/(10**token1Decimal);
           
             const message = "Liquidity increase transaction "+ amount0 +" of "+ token0 +" and " +amount1 +" of "+ token1;
-            console.log(message);
-            telegrambot(message);
+            // console.log(message);
+            // telegrambot(message);
             if(token0.indexOf("ETH")!==-1||token1.indexOf("ETH")!==-1){
               if(token0.indexOf("ETH")!==-1){
-                if(amount0>0.1){
+                if(amount0>0.01){
                   console.log(message);
                   telegrambot(message);
                 }
               }
 
               if(token1.indexOf("ETH")!==-1){
-                if(amount1>0.1){
+                if(amount1>0.01){
                   console.log(message);
                   telegrambot(message);
                 }
@@ -1608,7 +1600,7 @@ var init = function () {
           }
           }
           if(data!=null&&data.name!=null&&data.name.indexOf('mint')!==-1){
-            console.log(transaction);
+            console.log(tx);
             const value = data.params.filter((param) => param.name === "params")[0].value;
             const token0 = value[0];
             const token1 = value[1];
@@ -1622,18 +1614,18 @@ var init = function () {
             const amount1 = value[6]/(10**token1Decimal);
             console.log(value);
             const message = "Liquidity mint transaction "+ amount0 +" of "+ token0Symbol +" and " +amount1 +" of "+ token1Symbol;
-            console.log(message);
-            telegrambot(message);
+            // console.log(message);
+            // telegrambot(message);
             if(token0Symbol.indexOf("ETH")!==-1||token1Symbol.indexOf("ETH")!==-1){
               if(token0Symbol.indexOf("ETH")!==-1){
-                if(amount0>0.1){
+                if(amount0>0.01){
                   console.log(message);
                   telegrambot(message);
                 }
               }
 
               if(token1Symbol.indexOf("ETH")!==-1){
-                if(amount1>0.1){
+                if(amount1>0.01){
                   console.log(message);
                   telegrambot(message);
                 }
@@ -1649,7 +1641,6 @@ var init = function () {
 
             console.log(metadata.tokensOwed0);
             console.log(metadata.tokensOwed1);
-            telegrambot(metadata);
           }
         
 
